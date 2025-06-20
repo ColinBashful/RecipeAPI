@@ -1,14 +1,10 @@
 package de.cjdev.recipeapi.api.recipe;
 
-import de.cjdev.papermodapi.api.item.CustomItem;
-import de.cjdev.papermodapi.api.item.CustomItems;
+import de.cjdev.recipeapi.RecipeAPI;
 import de.cjdev.recipeapi.api.item.DyeItem;
-import io.papermc.paper.datacomponent.DataComponentTypes;
-import io.papermc.paper.datacomponent.item.DyedItemColor;
+import de.cjdev.recipeapi.api.item.GenericItemInfo;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.tags.ItemTags;
 import net.minecraft.util.ARGB;
-import net.minecraft.world.item.crafting.ArmorDyeRecipe;
 import org.bukkit.*;
 import org.bukkit.craftbukkit.inventory.CraftItemStack;
 import org.bukkit.inventory.ItemStack;
@@ -49,12 +45,9 @@ public class CustomDyeItemRecipe implements CustomCraftingRecipe {
         return apply(craftingInput.getItem(itemToDye), colors);
     }
 
-    private static ItemStack apply(ItemStack stack, List<Color> colors) {
-        CustomItem customItem = CustomItems.getItemByStack(stack);
-        if (customItem != null) {
-            if (!customItem.isDyeable())
-                return ItemStack.empty();
-        } else if (!Tag.ITEMS_DYEABLE.isTagged(stack.getType()))
+    private static ItemStack apply(@NotNull ItemStack stack, List<Color> colors) {
+        GenericItemInfo itemInfo = RecipeAPI.getItemInfo(stack);
+        if (!itemInfo.dyeable())
             return ItemStack.empty();
 
         ItemStack itemStack = stack.asOne();
@@ -113,11 +106,8 @@ public class CustomDyeItemRecipe implements CustomCraftingRecipe {
             if (difference == 0)
                 continue;
             ItemStack dyeThis = input.getItem(i * 64 + Long.numberOfTrailingZeros(difference));
-            CustomItem customItem = CustomItems.getItemByStack(dyeThis);
-            if (customItem != null) {
-                if (!customItem.isDyeable())
-                    return false;
-            } else if (!Tag.ITEMS_DYEABLE.isTagged(dyeThis.getType()))
+            GenericItemInfo itemInfo = RecipeAPI.getItemInfo(dyeThis);
+            if (!itemInfo.air() && !itemInfo.dyeable())
                 return false;
         }
 

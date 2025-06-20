@@ -2,6 +2,7 @@ package de.cjdev.recipeapi;
 
 import com.google.gson.*;
 import de.cjdev.recipeapi.api.component.RecipeComponents;
+import de.cjdev.recipeapi.api.item.GenericItemInfo;
 import de.cjdev.recipeapi.api.recipe.*;
 import de.cjdev.recipeapi.listener.*;
 import de.cjdev.recipeapi.serializer.*;
@@ -9,11 +10,11 @@ import de.cjdev.taglib.TagLib;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
+import org.bukkit.Tag;
 import org.bukkit.inventory.*;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
-import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -95,6 +96,19 @@ public final class RecipeAPI extends JavaPlugin {
     }
 
     @Override
+    public void onLoad() {
+        // Registering Recipe Types
+        registerRecipeSerializer(NamespacedKey.minecraft("crafting_shapeless"), CraftingShapelessSerializer.class);
+        registerRecipeSerializer(NamespacedKey.minecraft("crafting_shaped"), CraftingShapedSerializer.class);
+        registerRecipeSerializer(NamespacedKey.minecraft("crafting_transmute"), CraftingTransmuteSerializer.class);
+        // REGION not rn
+        registerRecipeSerializer(NamespacedKey.minecraft("blasting"), BlastingSerializer.class);
+        registerRecipeSerializer(NamespacedKey.minecraft("smelting"), SmeltingSerializer.class);
+        registerRecipeSerializer(NamespacedKey.minecraft("smoking"), SmokingSerializer.class);
+        registerRecipeSerializer(NamespacedKey.minecraft("campfire_cooking"), CampfireCookingSerializer.class);
+    }
+
+    @Override
     public void onEnable() {
         // Plugin startup logic
         plugin = this;
@@ -117,29 +131,14 @@ public final class RecipeAPI extends JavaPlugin {
         pluginManager.registerEvents(new InventoryClickEvent(), this);
 
         // region HIGHLY EXPERIMENTAL
-        pluginManager.registerEvents(new EnchantEventListener(), this);
+        //pluginManager.registerEvents(new EnchantEventListener(), this);
         //if (Dependency.MorePaperEvents.isEnabled()) {
         //    pluginManager.registerEvents(new IgniteFurnaceEventListener(), this);
         //    pluginManager.registerEvents(new PlayerInteractEventListener(), this);
         //    LOGGER.info("\u001B[38;2;85;255;85mFurnace Features available\u001B[0m");
         //}
 
-        // Registering Recipe Types
-        registerRecipeSerializer(NamespacedKey.minecraft("crafting_shapeless"), CraftingShapelessSerializer.class);
-        registerRecipeSerializer(NamespacedKey.minecraft("crafting_shaped"), CraftingShapedSerializer.class);
-        registerRecipeSerializer(NamespacedKey.minecraft("crafting_transmute"), CraftingTransmuteSerializer.class);
-        // REGION not rn
-        //registerRecipeSerializer(NamespacedKey.minecraft("blasting"), BlastingSerializer.class);
-        //registerRecipeSerializer(NamespacedKey.minecraft("smelting"), SmeltingSerializer.class);
-        //registerRecipeSerializer(NamespacedKey.minecraft("smoking"), SmokingSerializer.class);
-        //registerRecipeSerializer(NamespacedKey.minecraft("campfire_cooking"), CampfireCookingSerializer.class);
-
-        new BukkitRunnable() {
-            @Override
-            public void run() {
-                loadRecipesFromData();
-            }
-        }.runTaskAsynchronously(this);
+        loadRecipesFromData();
     }
 
     public static Supplier<Set<NamespacedKey>> getTagSupplier(NamespacedKey tagKey) {
@@ -151,23 +150,22 @@ public final class RecipeAPI extends JavaPlugin {
     public static boolean isStackCustom(@Nullable ItemStack stack) {
         if (stack == null || stack.isEmpty())
             return false;
-        return Dependency.PaperModAPI.isEnabled() && de.cjdev.papermodapi.api.component.CustomDataComponents.ITEM_COMPONENT.has(stack);
+        return getItemInfo(stack).custom();
+    }
+
+    public static @NotNull GenericItemInfo getItemInfo(@Nullable ItemStack stack) {
+        if (stack == null || stack.isEmpty()) return new GenericItemInfo(true, NamespacedKey.minecraft("air"), false, false);
+        if (Dependency.PaperModAPI.isEnabled()) {
+            NamespacedKey itemId = de.cjdev.papermodapi.api.item.CustomItems.getKeyByStack(stack);
+            de.cjdev.papermodapi.api.item.CustomItem customItem = de.cjdev.papermodapi.api.item.CustomItems.getItemByKey(itemId);
+            if (customItem != null)
+                return new GenericItemInfo(false, itemId, true, customItem.isDyeable());
+        }
+        return new GenericItemInfo(false, stack.getType().getKey(), false, Tag.ITEMS_DYEABLE.isTagged(stack.getType()));
     }
 
     public static NamespacedKey getKeyFromStack(@Nullable ItemStack stack) {
-        if (stack == null || stack.isEmpty())
-            return NamespacedKey.minecraft("air");
-        NamespacedKey key;
-        Check:
-        {
-            if (RecipeAPI.Dependency.PaperModAPI.isEnabled()) {
-                key = de.cjdev.papermodapi.api.component.CustomDataComponents.ITEM_COMPONENT.get(stack);
-                if (key != null)
-                    break Check;
-            }
-            key = stack.getType().getKey();
-        }
-        return key;
+        return getItemInfo(stack).itemId();
     }
 
     public static ItemStack parseItemId(NamespacedKey id) {
@@ -215,7 +213,7 @@ public final class RecipeAPI extends JavaPlugin {
                         RecipeSerializer serializer = RECIPE_PARSE_GSON.fromJson(json, serializerClass);
                         CustomRecipe<?> customRecipe = serializer.asRecipe();
                         if (customRecipe != null)
-                            Bukkit.getScheduler().runTask(plugin, () -> addRecipe(new NamespacedKey(namespace, fileName), customRecipe));
+                            addRecipe(new NamespacedKey(namespace, fileName), customRecipe);
                         else
                             warnFailLoad("%s:%s/%s".formatted(namespace, type, fileName));
                     }
