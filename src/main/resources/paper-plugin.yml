@@ -1,0 +1,15 @@
+name: RecipeAPI
+version: '1.0-SNAPSHOT'
+main: de.cjdev.recipeapi.RecipeAPI
+api-version: '1.21'
+load: STARTUP
+authors: [ CJDev ]
+description: An API adding more Stuff to Recipes
+dependencies:
+  server:
+    PaperModAPI:
+      load: BEFORE
+      required: false
+    TagLib:
+      load: BEFORE
+      required: false
