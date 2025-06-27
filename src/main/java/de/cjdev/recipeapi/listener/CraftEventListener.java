@@ -19,10 +19,17 @@ import org.bukkit.event.inventory.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.view.AnvilView;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 
 public class CraftEventListener implements Listener {
+
+    private final RecipeAPI plugin;
+
+    public CraftEventListener(RecipeAPI plugin) {
+        this.plugin = plugin;
+    }
 
     private static final ThreadLocal<Player> playerThreadLocal = new ThreadLocal<>();
 
@@ -46,7 +53,7 @@ public class CraftEventListener implements Listener {
         if (event.getSlotType() != InventoryType.SlotType.RESULT)
             return;
         if (event.getClickedInventory() instanceof CraftingInventory craftingInventory) {
-            RecipeAPI.LOGGER.info("Craft");
+            //RecipeAPI.LOGGER.info("Craft");
             event.getWhoClicked().sendMessage(Component.text("You (Player) CRAFTED!"));
             int repeat = 1;
             //if (event.getClick() == ClickType.SHIFT_LEFT || event.getClick() == ClickType.SHIFT_RIGHT) {
@@ -66,15 +73,14 @@ public class CraftEventListener implements Listener {
                 ItemStack stack = matrix[i];
                 if (stack == null)
                     continue;
-                //ItemStack clonedStack = stack.clone();
+                ItemStack clonedStack = stack.clone();
                 //for (int x = 0; x < repeat; x++) {
                 if (!Helper.getRecipeRemainder(stack)) {
                     if (stack.getAmount() > 1)
                         stack.subtract();
                     continue;
                 }
-                //}
-                //copyMatrix[i] = clonedStack;
+                copyMatrix[i] = clonedStack;
             }
             //ItemStack[] giveResults = new ItemStack[repeat - 1];
             //for (int i = repeat - 1; i != -1; --i) {
@@ -87,13 +93,12 @@ public class CraftEventListener implements Listener {
                 //giveResults[i - 1] = cloned;
             //}
             //player.getInventory().addItem(giveResults);
-
-            //new BukkitRunnable() {
-            //    @Override
-            //    public void run() {
-            //        craftingInventory.setMatrix(copyMatrix);
-            //    }
-            //}.runTask(RecipeAPI.getPlugin());
+            new BukkitRunnable() {
+                @Override
+                public void run() {
+                    craftingInventory.setMatrix(copyMatrix);
+                }
+            }.runTask(plugin);
             event.setResult(Event.Result.DENY);
             Bukkit.getServer().broadcast(Component.text(String.join(", ", Arrays.stream(craftingInventory.getMatrix()).filter(Objects::nonNull).map(stack -> String.valueOf(stack.getAmount())).toList())));
         } else if (event.getClickedInventory() instanceof StonecutterInventory stoneCutterInventory) {

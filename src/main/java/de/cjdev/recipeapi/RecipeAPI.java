@@ -124,7 +124,7 @@ public final class RecipeAPI extends JavaPlugin {
 
         // Registering Event Listeners
         PluginManager pluginManager = Bukkit.getPluginManager();
-        pluginManager.registerEvents(new CraftEventListener(), this);
+        pluginManager.registerEvents(new CraftEventListener(this), this);
         pluginManager.registerEvents(new CookEventListener(), this);
         pluginManager.registerEvents(new FurnaceEventListener(), this);
         pluginManager.registerEvents(new InventoryClickEvent(), this);

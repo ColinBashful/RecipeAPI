@@ -8,14 +8,14 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.event.inventory.InventoryType;
 import org.bukkit.inventory.FurnaceInventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.view.BrewingStandView;
+//import org.bukkit.inventory.view.BrewingStandView;
 
 public class InventoryClickEvent implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onInventoryClick(org.bukkit.event.inventory.InventoryClickEvent event) {
-        if (event.getClickedInventory() instanceof BrewingStandView brewingStandView) {
-
-        }
+        //if (event.getClickedInventory() instanceof BrewingStandView brewingStandView) {
+        //
+        //}
         if (event.getClickedInventory() instanceof FurnaceInventory furnaceInventory) {
             if (event.getSlotType() != InventoryType.SlotType.FUEL) return;
             switch (event.getClick()) {

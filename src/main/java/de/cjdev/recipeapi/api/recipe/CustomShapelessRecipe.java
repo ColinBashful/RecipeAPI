@@ -116,7 +116,7 @@ public class CustomShapelessRecipe implements CustomCraftingRecipe {
                 }
             }
 
-            RecipeAPI.LOGGER.warning("TRUE");
+            //RecipeAPI.LOGGER.warning("TRUE");
             return true;
         }
     }
