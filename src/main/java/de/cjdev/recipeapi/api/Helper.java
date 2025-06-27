@@ -78,7 +78,6 @@ public class Helper {
         i6 = (int) ((float) i6 * f / f1);
         i7 = (int) ((float) i7 * f / f1);
         int i10 = ARGB.color(0, i5, i6, i7);
-        boolean flag = dyedItemColor == null || dyedItemColor.showInTooltip();
-        CraftItemStack.unwrap(stack).set(DataComponents.DYED_COLOR, new net.minecraft.world.item.component.DyedItemColor(i10, flag));
+        CraftItemStack.unwrap(stack).set(DataComponents.DYED_COLOR, new net.minecraft.world.item.component.DyedItemColor(i10));
     }
 }
