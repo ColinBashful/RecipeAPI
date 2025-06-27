@@ -1,13 +1,11 @@
 package de.cjdev.recipeapi.listener;
 
-import de.cjdev.recipeapi.Helper;
+import de.cjdev.recipeapi.api.Helper;
 import de.cjdev.recipeapi.RecipeAPI;
 import de.cjdev.recipeapi.api.recipe.*;
 import io.papermc.paper.datacomponent.DataComponentTypes;
 import net.kyori.adventure.text.Component;
-import net.minecraft.core.component.DataComponents;
 import net.minecraft.util.StringUtil;
-import net.minecraft.world.inventory.AnvilMenu;
 import org.bukkit.Bukkit;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Crafter;
@@ -21,7 +19,6 @@ import org.bukkit.event.inventory.*;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.inventory.*;
 import org.bukkit.inventory.view.AnvilView;
-import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.*;
 

@@ -22,7 +22,7 @@ repositories {
 dependencies {
     paperweight.paperDevBundle("${minecraft_version}-R0.1-SNAPSHOT")
     compileOnly("io.papermc.paper:paper-api:${minecraft_version}-R0.1-SNAPSHOT")
-    compileOnly("maven.modrinth:taglib-papermc:${taglib_version}+${minecraft_version}")
+    compileOnly("maven.modrinth:taglib-papermc:${taglib_version}+${old_minecraft_version}")
     compileOnly("maven.modrinth:papermodapi:${papermodapi_version}+${minecraft_version}")
     //compileOnly files('C:/Minecraft Servers/Paper Plugin Test Server/mods/MorePaperEvents-1.0-SNAPSHOT.jar')
 }

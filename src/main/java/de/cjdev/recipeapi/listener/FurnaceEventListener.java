@@ -1,6 +1,6 @@
 package de.cjdev.recipeapi.listener;
 
-import de.cjdev.recipeapi.Helper;
+import de.cjdev.recipeapi.api.Helper;
 import de.cjdev.recipeapi.api.component.RecipeComponents;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;

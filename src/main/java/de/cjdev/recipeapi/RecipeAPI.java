@@ -15,6 +15,7 @@ import org.bukkit.inventory.*;
 import org.bukkit.plugin.Plugin;
 import org.bukkit.plugin.PluginManager;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -34,7 +35,6 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
 
 public final class RecipeAPI extends JavaPlugin {
-    private static RecipeAPI plugin;
     public static Logger LOGGER;
     public static final Gson RECIPE_PARSE_GSON;
 
@@ -111,7 +111,6 @@ public final class RecipeAPI extends JavaPlugin {
     @Override
     public void onEnable() {
         // Plugin startup logic
-        plugin = this;
         LOGGER = getLogger();
 
         // Registering Special Recipes
@@ -138,7 +137,12 @@ public final class RecipeAPI extends JavaPlugin {
         //    LOGGER.info("\u001B[38;2;85;255;85mFurnace Features available\u001B[0m");
         //}
 
-        loadRecipesFromData();
+        new BukkitRunnable() {
+            @Override
+            public void run() {
+                loadRecipesFromData();
+            }
+        }.runTask(this);
     }
 
     public static Supplier<Set<NamespacedKey>> getTagSupplier(NamespacedKey tagKey) {
@@ -217,11 +221,15 @@ public final class RecipeAPI extends JavaPlugin {
                         else
                             warnFailLoad("%s:%s/%s".formatted(namespace, type, fileName));
                     }
-                } catch (IOException e) {
-                    LOGGER.warning(e.getMessage());
+                } catch (IllegalArgumentException | IOException e) {
+                    warnFailLoad("%s:%s/%s".formatted(namespace, type, fileName), e.getMessage());
                 }
             }
         }
+    }
+
+    private static void warnFailLoad(String id, String reason) {
+        LOGGER.warning("\u001B[38;2;255;85;85m%s failed to load: %s\u001B[0m".formatted(id, reason));
     }
 
     private static void warnFailLoad(String id) {
