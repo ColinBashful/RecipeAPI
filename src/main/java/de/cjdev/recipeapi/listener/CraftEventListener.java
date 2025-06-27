@@ -7,10 +7,10 @@ import io.papermc.paper.datacomponent.DataComponentTypes;
 import net.kyori.adventure.text.Component;
 import net.minecraft.util.StringUtil;
 import org.bukkit.Bukkit;
+import org.bukkit.GameRule;
 import org.bukkit.NamespacedKey;
 import org.bukkit.block.Crafter;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Event;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -54,12 +54,12 @@ public class CraftEventListener implements Listener {
             return;
         if (event.getClickedInventory() instanceof CraftingInventory craftingInventory) {
             //RecipeAPI.LOGGER.info("Craft");
-            event.getWhoClicked().sendMessage(Component.text("You (Player) CRAFTED!"));
-            int repeat = 1;
+            //event.getWhoClicked().sendMessage(Component.text("You (Player) CRAFTED!"));
+            //int repeat = 1;
             //if (event.getClick() == ClickType.SHIFT_LEFT || event.getClick() == ClickType.SHIFT_RIGHT) {
             //    for (ItemStack content : craftingInventory.getMatrix()) {
             //        if (content == null) continue;
-            //        if (repeat < content.getAmount())
+            //        if (content.getAmount() < repeat)
             //            repeat = content.getAmount();
             //    }
             //}
@@ -74,23 +74,27 @@ public class CraftEventListener implements Listener {
                 if (stack == null)
                     continue;
                 ItemStack clonedStack = stack.clone();
-                //for (int x = 0; x < repeat; x++) {
-                if (!Helper.getRecipeRemainder(stack)) {
-                    if (stack.getAmount() > 1)
-                        stack.subtract();
-                    continue;
+                REPEAT:
+                {
+                    //for (int x = 0; x < repeat; x++) {
+                        if (!Helper.getRecipeRemainder(stack)) {
+                            if (stack.getAmount() > 1)
+                                clonedStack.subtract();
+                            break REPEAT;
+                        }
+                    //}
+                    copyMatrix[i] = clonedStack;
                 }
-                copyMatrix[i] = clonedStack;
             }
             //ItemStack[] giveResults = new ItemStack[repeat - 1];
             //for (int i = repeat - 1; i != -1; --i) {
-                //if (i == 0) {
+            //    if (i == 0) {
             onCraftHelper(result, player);
-                    //continue;
-                //}
-                //ItemStack cloned = result.clone();
-                //onCraftHelper(cloned, player);
-                //giveResults[i - 1] = cloned;
+            //}
+            //assert result != null;
+            //    ItemStack cloned = result.clone();
+            //    onCraftHelper(cloned, player);
+            //    giveResults[i - 1] = cloned;
             //}
             //player.getInventory().addItem(giveResults);
             new BukkitRunnable() {
@@ -99,8 +103,9 @@ public class CraftEventListener implements Listener {
                     craftingInventory.setMatrix(copyMatrix);
                 }
             }.runTask(plugin);
-            event.setResult(Event.Result.DENY);
-            Bukkit.getServer().broadcast(Component.text(String.join(", ", Arrays.stream(craftingInventory.getMatrix()).filter(Objects::nonNull).map(stack -> String.valueOf(stack.getAmount())).toList())));
+
+            //event.setResult(Event.Result.DENY);
+            //Bukkit.getServer().broadcast(Component.text(String.join(", ", Arrays.stream(craftingInventory.getMatrix()).filter(Objects::nonNull).map(stack -> String.valueOf(stack.getAmount())).toList())));
         } else if (event.getClickedInventory() instanceof StonecutterInventory stoneCutterInventory) {
             ItemStack result = stoneCutterInventory.getResult();
             onCraftHelper(result, player);
@@ -149,8 +154,9 @@ public class CraftEventListener implements Listener {
         CustomCraftingInput craftingInput = new CustomCraftingInput(width, height, input);
 
         Player player = playerThreadLocal.get();
+        playerThreadLocal.remove();
         for (Map.Entry<NamespacedKey, CustomRecipe<?>> entry : RecipeAPI.CustomRecipes.entrySet()) {
-            if (!player.hasDiscoveredRecipe(entry.getKey()) && Bukkit.getRecipe(entry.getKey()) != null) continue;
+            if (player != null && Boolean.TRUE.equals(player.getWorld().getGameRuleValue(GameRule.DO_LIMITED_CRAFTING)) && !player.hasDiscoveredRecipe(entry.getKey()) && Bukkit.getRecipe(entry.getKey()) != null) continue;
             if (!(entry.getValue() instanceof CustomCraftingRecipe craftingRecipe))
                 continue;
             if (!craftingRecipe.matches(craftingInput))
